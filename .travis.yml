@@ -1,0 +1,25 @@
+
+sudo: required
+
+services: 
+  - docker 
+
+before_install:
+  - docker build -t krubel/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true krubel/react-test npm test
+
+after_success:
+  - docker build -t krubel/multi-client ./client
+  - docker build -t krubel/multi-nginx ./nginx  
+  - docker build -t krubel/multi-server ./server 
+  - docker build -t krubel/multi-worker ./worker 
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push krubel/multi-nginx
+  - docker push krubel/multi-client
+  - docker push krubel/multi-server 
+  - docker push krubel/multi-worker 
+
+
+
